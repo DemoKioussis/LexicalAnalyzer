@@ -4,20 +4,22 @@ import java.util.Scanner;
  * Created by Demok on 2017-01-16.
  */
 public class Driver {
-
-    public static void main(String[] args){
-        DFA dfa = new DFA();
+    enum tests{HELLO, WHAT};
+    public static void main(String[] args) {
         Scanner in = new Scanner(System.in);
-        char input;
-        DFABuilder b = new DFABuilder(dfa);
-        b.getBuildInstructions("instructions/instructions.demo",true);
+        String input;
+        LexicalAnalyzer analyzer = new LexicalAnalyzer("instructions/instruct.demo","",true);
 
         while(true){
-            input = in.next().charAt(0);
-            if(input == 'r')
-                dfa.reset();
+            input = in.next();
+            if(input.equals("reset"))
+                analyzer.dfa.reset();
+            else if(input.equals("show"))
+                analyzer.printTokens();
             else
-                dfa.input(input);
+               analyzer.passLexeme(input);
+
         }
+
     }
 }

@@ -1,0 +1,104 @@
+everything not within tags ##xxx to ##end are comments
+use ##single for a key chain (can branch, ex; if, int use same i state)
+use code:
+X TOKEN PATH -> X is symbol/word, TOKEN is the token value of final state, PATH is value of all states up to final state
+NOTE: Paths will override eachother, so declare states with no overlaps
+    eg: if ->ifthen  --> if state wiped out
+        ifthen -> if --> if state preserved
+
+##single
+
+( ORG_OPEN_PAREN
+) ORG_CLOSE_PAREN
+{ ORG_OPEN_CURLY
+} ORG_CLOSE_CURLY
+[ ORG_OPEN_BRACKET
+] ORG_CLOSE_BRACKET
+// ORG_COMMENT_LINE
+/* ORG_COMMENT_OPEN
+*/ ORG_COMMENT_CLOSE
+
+if W_IF EL_ID
+then W_THEN EL_ID
+else W_ELSE EL_ID
+for W_FOR EL_ID
+class W_CLASS EL_ID
+int W_INT EL_ID
+float W_FLOAT EL_ID
+get W_GET EL_ID
+put W_PUT EL_ID
+return W_RETURN EL_ID
+program W_PROGRAM EL_ID
+
+== OP_EQUAL
+<> OP_NOT
+< OP_L_THAN
+> OP_G_THAN
+<= OP_L_THAN_OR_EQUAL
+>= OP_G_THAN_OR_EQUAL
++ OP_PLUS
+- OP_MINUS
+* OP_MULTIPLY
+/ OP_DIVIDE
+= OP_ASSIGN
+and OP_AND EL_ID
+not OP_NOT EL_ID
+or OP_OR EL_ID
+
+; PUNCT_SEMICOL
+, PUNCT_COMMA
+. PUNCT_DOT
+
+##end
+
+Transforms associate a new symbol for a set of symbols This is so we dont have to create many reapeted transitions
+eg, state1-->a--> state2, state1-->b-->state2, etc...
+instead, we create a form such that a==b==c==d==...==$X,
+so we use state1-->$X-->state2. only supports up to 2 chars (XY), but they can be anything
+we can transform to another single char but then we risk overwriting a char that we want to use
+the values are compared using askii, so lower valued chars first
+
+##transform
+a z $L
+A Z $L
+1 9 $N
+##end
+
+link joins existing states to a new state defined by &new
+
+&new XXX -> new state with token XXX
+&self A B C -> loops back to self with inputs A B C
+&path XY A B-> for all states on path XY, can reach new state with inputs A B
+XYZ A B C -> at tail of path XYZ, make link using chars A B C
+
+##link
+&new EL_ID
+&self $L _ $N 0
+&start $L
+&path if $L _ $N 0
+&path then  $L _ $N 0
+&path else $L _ $N 0
+&path for $L _ $N 0
+&path class $L _ $N 0
+&path int $L _ $N 0
+&path float $L _ $N 0
+&path get $L _ $N 0
+&path put $L _ $N 0
+&path return $L _ $N 0
+&path program $L _ $N 0
+&path and $L _ $N 0
+&path or $L _ $N 0
+&path not $L _ $N 0
+
+
+
+
+&new EL_INTEGER
+&self $N 0
+&start $N 0
+
+&new EL_FLOAT
+&start .
+&self $N 0
+$N .
+##end

@@ -8,46 +8,62 @@ import java.util.ArrayList;
  *
  */
 public class DFA {
-    // list of tokens --> see paper for details
-    enum TOKEN{EL_ID, EL_ALPHANUM,EL_NUM,EL_INTEGER,EL_FLOAT,EL_FRACTION,EL_LETTER,EL_DIGIT,EL_NONZERO,
-        W_IF,W_THEN,W_ELSE,W_FOR,W_CLASS,W_INT,W_FLOAT,W_GET,W_PUT,W_RETURN,W_PROGRAM,
-        OP_EQUAL,OP_NOT_EQUAL,OP_L_THAN,OP_G_THAN,OP_L_THAN_OR_EQUAL,OP_G_THAN_OR_EQUAL,
-        OP_PLUS,OP_MINUS,OP_MULTIPLY,OP_DIVID,OP_ASSING,OP_AND,OP_NOT,OP_OR,PUNCT_SEMICOL,PUNCT_COMMA,PUNCT_DOT,
-        ORG_OPEN_PAREN,ORG_CLOSE_PAREN,ORG_OPEN_CURLY,ORG_CLOSE_CURLY,ORG_OPEN_BRACKET,ORG_CLOSE_BRACKET,
-        ORG_COMMENT_LINE,ORG_COMMENT_OPEN,ORG_COMMENT_CLOSE,ERROR};
-
     //store all states in dfa in list for easy individual access, access each with id
     private ArrayList<State> states = new ArrayList<>();
     // increment each time we add new state
     int lastID = 0;
 
     //error state is the state we go to when we make invalid transition, default id is 0
-    State errorState;//id 0
+    private State errorState;//id 0
     // the state we start in, default id is 1
-    State startState;//id 1
+    private State startState;//id 1
     // this state keeps track of our position in the DFA
-    State currentState;
+    private State currentState;
+    private State previousState;
 
+    private boolean debug;
     // the state class
     private class State{
         class Transition{
             private State state;
             private char symbol;
+            private char symbol2;
+            private boolean hasDouble;
 
             Transition(State s, char c){
                 state = s;
                 symbol = c;
+                hasDouble = false;
+            }
+            Transition(State s, char c1, char c2){
+                state = s;
+                symbol = c1;
+                symbol2 = c2;
+                hasDouble = true;
             }
 
             State doTransition(char c){
 
-                if(c == symbol)
+                if(matchSymbol(c))
                     return state;
                 else
                     return errorState;
             }
             boolean matchSymbol(char c){
-                if(symbol == c)
+                if(symbol == c &&!hasDouble)
+                    return true;
+                else
+                    return false;
+            }
+            State doTransition(char c1, char c2){
+
+                if(matchSymbol(c1,c2))
+                    return state;
+                else
+                    return errorState;
+            }
+            boolean matchSymbol(char c1,char c2){
+                if(hasDouble && symbol == c1 && symbol2 == c2)
                     return true;
                 else
                     return false;
@@ -55,9 +71,12 @@ public class DFA {
             char getSymbol(){
                 return symbol;
             }
+            char getSecondSymbol(){
+                return symbol2;
+            }
         }
         int stateID;
-        private TOKEN token;
+        private Token.TOKEN token;
         ArrayList<Transition> transitions = new ArrayList<>();
         private boolean isFinalState;
 
@@ -65,33 +84,58 @@ public class DFA {
             stateID = lastID++;
             isFinalState = f;
         };
-        State(boolean f,TOKEN t){
+        State(boolean f,Token.TOKEN t){
             stateID = lastID++;
             isFinalState = f;
             token = t;
         };
 
-        void setToken(TOKEN t){
+        void setToken(Token.TOKEN t){
             token = t;
         }
         void setToken(String t){
-            token = TOKEN.valueOf(t);
+            token = Token.TOKEN.valueOf(t);
         }
-        TOKEN getToken(){
+        Token.TOKEN getToken(){
             return token;
         }
-        void addTransition(State s, char c){
+        boolean hasTransition(char c){
             for(Transition t : transitions)
                 if(t.matchSymbol(c)){
-                    System.out.println("CANNOT ADD TRANSITION "+c+" to state "+stateID+" because that transition exists");
-                    return;
+                    return true;
                 }
-            transitions.add((new Transition(s,c)));
+            return false;
+        }
+        boolean hasTransition(char c1,char c2){
+            for(Transition t : transitions)
+                if(t.matchSymbol(c1,c2)){
+                    return true;
+                }
+            return false;
+        }
+        void addTransition(State s, char c){
+            if(!hasTransition(c))
+                transitions.add((new Transition(s,c)));
+            else
+                System.err.println("State "+s.stateID+" - "+s.getToken()+" already has transition "+c);
+        }
+
+        void addTransition(State s, char c1,char c2){
+            if(!hasTransition(c1,c2))
+                transitions.add((new Transition(s,c1,c2)));
+            else
+                System.err.println("State "+s.stateID+" - "+s.getToken()+" already has transition "+c1+""+c2);
         }
 
         void removeTransition(char c){
             for(Transition t : transitions){
                 if(t.matchSymbol(c))
+                    transitions.remove(t);
+            }
+        }
+        void removeTransition(char c1,char c2){
+            for(Transition t : transitions){
+                if(t.matchSymbol(c1,c2))
                     transitions.remove(t);
             }
         }
@@ -103,6 +147,13 @@ public class DFA {
             }
             return errorState;
         }
+        State makeTransition(char c1,char c2){
+            for(Transition t : transitions){
+                if(t.matchSymbol(c1,c2))
+                    return t.doTransition(c1,c2);
+            }
+            return errorState;
+        }
         boolean isFinal(){
             return isFinalState;
         }
@@ -111,72 +162,126 @@ public class DFA {
         }
 
     }
+    private String path;
 
 
     public DFA(){
         errorState = new State(false); //id 0
         startState = new State(false); //id 1
         currentState = startState;
+        previousState = currentState;
         states.add(errorState);
         states.add(startState);
+        errorState.setToken(Token.TOKEN.ERROR);
+        startState.setToken(Token.TOKEN.ERROR);
+        path = "";
+    }
+
+    public void setDebug(boolean deb){
+        debug = deb;
     }
 
 
+    public int getCurrentID(){
+        return currentState.stateID;
+    }
     public void input(char c){
+        previousState = currentState;
         currentState = currentState.makeTransition(c);
-        System.out.print("Moving to state "+currentState.stateID);
-        if(currentState.isFinal())
-            System.out.print(" - Final State\n\n");
-        if(currentState.stateID==errorState.stateID)
-            System.out.print(" - Error State\n\n");
-
+        if(debug) {
+            path = path+c;
+            System.out.print("Moving to state " + currentState.stateID+": "+getToken());
+            if (currentState.isFinal())
+                System.out.print(" - Final State");
+            if (currentState.stateID == errorState.stateID)
+                System.out.print(" - Error State");
+            System.out.println("Path: "+path+"\n");
+        }
 
     }
-    public void addState(boolean fin){
+    public void input(char c1,char c2){
+        previousState = currentState;
+        currentState = currentState.makeTransition(c1,c2);
+        if(debug) {
+            path = path+c1 +""+c2;
+            System.out.print("Moving to state " + currentState.stateID+": "+getToken());
+            if (currentState.isFinal())
+                System.out.print(" - Final State");
+            if (currentState.stateID == errorState.stateID)
+                System.out.print(" - Error State");
+            System.out.println("\n");
+        }
+
+    }
+    public int addState(boolean fin){
         State s = new State(fin);
         states.add(s);
-
+        return s.stateID;
     }
-    public void addState(boolean fin,TOKEN t){
+    public int addState(boolean fin,Token.TOKEN t){
         State s = new State(fin,t);
         states.add(s);
+        return s.stateID;
     }
-    public void setToken(int state,TOKEN t){
+    public void setToken(int state,Token.TOKEN t){
         if(state>=0 && state<states.size() )
             states.get(state).setToken(t);
         else
-            System.out.println("Could not set token - invalid state: "+state);
+            System.err.println("Could not set token - invalid state: "+state);
     }
     public void setToken(int state,String t){
         if(state>=0 && state<states.size() )
             states.get(state).setToken(t);
         else
-            System.out.println("Could not set token - invalid state: "+state);
+            System.err.println("Could not set token - invalid state: "+state);
     }
     public void setFinal(int state, boolean bool){
         if(state>=0 && state<states.size() )
             states.get(state).setFinal(bool);
         else
-            System.out.println("Could not set final status - invalid state: "+state);
+            System.err.println("Could not set final status - invalid state: "+state);
+    }
+
+    public void moveTo(int id){
+        currentState = states.get(id);
+    }
+
+    public boolean testInputAtCurrent(char c){
+        return currentState.hasTransition(c);
+    }
+    public boolean testInputAtCurrent(char c1,char c2){
+        return currentState.hasTransition(c1,c2);
     }
 
     public void addTransition(int start, int end, char c){
         if(start>=0 && start<states.size()  && end>=0 && end<states.size())
             states.get(start).addTransition(states.get(end),c);
         else
-            System.out.println("Could not add transition - invalid state(s): "+start +" to "+end);
+            System.err.println("Could not add transition - invalid state(s): "+start +" to "+end);
+    }
+    public void addTransition(int start, int end, char c1, char c2){
+        if(start>=0 && start<states.size()  && end>=0 && end<states.size())
+            states.get(start).addTransition(states.get(end),c1,c2);
+        else
+            System.err.println("Could not add transition - invalid state(s): "+start +" to "+end);
     }
 
-    public TOKEN getToken(){
-        if(currentState.isFinal())
+    public Token.TOKEN getToken(){
             return currentState.getToken();
-        else
-            return TOKEN.ERROR;
+    }
+    public Token.TOKEN getPreviousToken(){
+        return previousState.getToken();
 
     }
     public void reset(){
         currentState = startState;
-        System.out.println("RESET DFA");
+        previousState = startState;
+        if(debug) {
+            System.out.println("Path was "+path);
+            System.out.println("RESET DFA");
+        }
+        path = "";
+
     }
     public int size(){
         return states.size();

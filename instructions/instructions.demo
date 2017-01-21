@@ -2,6 +2,7 @@
 // FORMAT:
 // M X (T/F) -> Make X states, with final state = T/F
 // T X Y c -> Transition from X to Y with symbol C
+// T X Y a z -> Transition from X to Y with all symbols between and including a and z
 // S X T -> Set state X with token T
 
 // TOKENS
@@ -26,19 +27,7 @@
 // Error state
 
 
-M 5 F
 M 1 T
-T 1 2 a
-T 1 3 b
-T 2 5 a
-T 3 6 a
-T 3 4 b
-T 4 7 a
-T 4 4 b
-T 5 5 a
-T 5 7 b
-T 6 2 a
-T 6 5 b
-T 7 7 a
-T 7 7 b
-T 7 1 c
+T 1 2 a z
+T 2 1 0 9
+
