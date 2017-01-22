@@ -1,7 +1,7 @@
 everything not within tags ##xxx to ##end are comments
-use ##single for a key chain (can branch, ex; if, int use same i state)
-use code:
-X TOKEN PATH -> X is symbol/word, TOKEN is the token value of final state, PATH is value of all states up to final state
+use ##single to make a chain  (can branch, ex; if, int use same i state)
+use format:
+PATH TOKEN OTHER -> PATH is symbol/word, TOKEN is the token value of final state, OTHER is value of all states up to final state (optional)
 NOTE: Paths will override eachother, so declare states with no overlaps
     eg: if ->ifthen  --> if state wiped out
         ifthen -> if --> if state preserved
@@ -37,7 +37,7 @@ program W_PROGRAM EL_ID
 <= OP_L_THAN_OR_EQUAL
 >= OP_G_THAN_OR_EQUAL
 + OP_PLUS
-- OP_MINUS
+- OP_PLUS
 * OP_MULTIPLY
 / OP_DIVIDE
 = OP_ASSIGN
@@ -54,9 +54,10 @@ or OP_OR EL_ID
 Transforms associate a new symbol for a set of symbols This is so we dont have to create many reapeted transitions
 eg, state1-->a--> state2, state1-->b-->state2, etc...
 instead, we create a form such that a==b==c==d==...==$X,
-so we use state1-->$X-->state2. only supports up to 2 chars (XY), but they can be anything
+so we use state1-->$X-->state2. Must be of form $X, where X is any other char if using double char
 we can transform to another single char but then we risk overwriting a char that we want to use
 the values are compared using askii, so lower valued chars first
+can only transform a character once
 
 ##transform
 a z $L
@@ -92,13 +93,16 @@ XYZ A B C -> at tail of path XYZ, make link using chars A B C
 
 
 
-
 &new EL_INTEGER
 &self $N 0
 &start $N 0
 
+&new INTERMEDIATE
+$N .
+
 &new EL_FLOAT
 &start .
 &self $N 0
-$N .
+$N. $N 0
+. $N 0
 ##end

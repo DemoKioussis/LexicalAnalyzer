@@ -1,0 +1,75 @@
+Demostenis Kioussis
+27648634
+22-1-2017
+Assignment 1
+
+I followed the original specifications for the lexical analyzer outlined in the handout
+
+The DFA that my Lexical analyzer uses is generated from a file located in the /instructions/ folder, 
+The file explains the syntax used to generate the DFA
+
+The lexical analyzer has 2 parts: 
+	-The DFA that is generated based on the syntax of the language
+		
+		-The DFA is composed of States which have Transitions and ID's (int).
+ 
+		-When the dfa is given a input (charater), its state changes. 
+
+		-Each state has a single associated token value on it.
+	
+		-invalid input bring us to error state
+
+		-State 0 with id 0 is the error state and state with id 1 is the start state
+		
+		-for efficiency sake, we can transform range of characters into another character
+		or preferable a 2 char structure "$X". By doing this, we can declare all characters
+		between x and y to be treated as $X, provided a specific input for that character in that 
+		specific state does not exist.
+		this means that we only need to generate 1 transition for all aplhabetic characters, instead of 2*26 indipendent transitions,
+		for every state which accept letters as characters. This saves speed and memory
+ 
+		
+	-The analyzer that takes in input from a file and passes it as a lexeme through the dfa
+	to generate tokens
+	
+		- tokens generated are saved within an arraylist
+
+		- When the end of a lexeme is reached, or if the next step brings us to the error state 
+		(any invalid input brings the dfa to error state) the lexeme (before reaching error state) a token is generated with
+		a token value of the last valid state  (this is an error recovery step)
+		
+			eg: abc=
+				we reached error state after char =
+				so we save abc with value of previous state as token
+
+		- if we finish on intermediate states that are still valid but not actual tokens, we follow the same process
+
+			eg: 5.
+				we reached the state betwen 5. and 5.5, which must be valid to reach 5.5
+				however the lexem 5. is not recognised, so this state is intermediate
+				
+				
+
+		- the dfa is reset after each token is generated and the process is repeated until the file is finished
+
+		- the longest valid lexeme is saved as a token 
+		
+		eg:	5.5 -> lexeme is (5.5) -> float
+			ab5.5 -> lexeme is (ab5) ->ID, (.) -> dot, (5) ->integer
+
+
+
+Tokens are defined under the Token class. The underlying structure is:
+	
+	private String lexeme;
+    	private TOKEN token;
+	private int[] position = new int[2];
+	
+position tells us where in the file the token was generated from. TOKEN is an enumerated value
+
+
+All code was made by myself and no libraries were used
+	
+
+ 
+

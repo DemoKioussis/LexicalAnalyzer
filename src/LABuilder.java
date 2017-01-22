@@ -48,7 +48,7 @@ public class LABuilder {
                     else if (mode == MODES.LINK)
                         addLinks(line,lineNum);
                 }
-                else
+                else if(debug)
                     System.out.println("MODE CHANGED TO "+mode);
 
             }
@@ -140,17 +140,16 @@ public class LABuilder {
         else{
 
             dfa.input(input);
+            dfa.setToken(dfa.getCurrentID(), value);
 
-                if(isFinal) {
-                    if(debug){
-                        System.out.println("Changing token value of "+dfa.getCurrentID()
-                                +" from "+dfa.getToken()+" to "+value+"\n");
-                    dfa.setToken(dfa.getCurrentID(), value);
+            if(debug){
+                System.out.println("Changing token value of "+dfa.getCurrentID()
+                        +" from "+dfa.getToken()+" to "+value+"\n");
                 }
             }
         }
 
-    }
+
 
     private void addTransforms(String line, int lineNum){
         Scanner scan = new Scanner(line);
@@ -233,12 +232,12 @@ public class LABuilder {
             String input = in.next();
             boolean dub = input.length() == 2 ;
             for(int i = 0; i<path.length();i++){
-                if(path.charAt(0)=='$' && path.length()>1) {
+                if(path.charAt(i)=='$' && path.length()>i+1) {
                     dfa.input('$', path.charAt(++i));
                 }
                 else
                     dfa.input(path.charAt(i));
-                linker(dub,input);
+                linker(input);
             }
             dfa.reset();
         }
@@ -251,9 +250,7 @@ public class LABuilder {
         while(in.hasNext()) {
 
             String input = in.next();
-            System.out.println("LIKE HELLO???: "+line);
-
-            linker(input.length() == 2, input);
+            linker(input);
         }
     }
 
@@ -266,14 +263,13 @@ public class LABuilder {
         String input;
         while(in.hasNext()){
             input = in.next();
-            linker(input.length()==2,input);
+            linker(input);
         }
     }
-    void linker(boolean dub, String input){
-        System.out.println("LINKING "+dub);
+    void linker(String input){
 
         if((dfa.getToken()!= Token.TOKEN.ERROR ||dfa.getCurrentID()==1) && buildState !=-1) {
-
+            boolean dub = input.charAt(0)=='$' && input.length()==2;
             if (dub) {
                 dfa.addTransition(dfa.getCurrentID(), buildState, input.charAt(0), input.charAt(1));
             } else
@@ -301,7 +297,7 @@ public class LABuilder {
             return;
         }
         for(int i = 0; i<path.length();i++){
-            if(path.charAt(0)=='$' && path.length()>1) {
+            if(path.charAt(i)=='$' && path.length()>i+1) {
                 dfa.input('$', path.charAt(++i));
             }
             else
@@ -309,12 +305,28 @@ public class LABuilder {
         }
         while(in.hasNext()){
             String input = in.next();
-            linker(input.length()==2,input);
+            linker(input);
         }
     }
-
-
-
 }
+
+/** This is for the test case, as the default input is this file
+ *  test23782_238293.+-(hello there_(_232_)-if<(why)then)("THIS_ISrecognised(here):Nor_WAS99_that>
+ * =============== == == = === == =
+ *><><><><</></></> <><></></>
+ * <=>>=<><<=><<<<<<>>>>>>>></>
+ * ;;;;,,,,.....,.;,.;,.;,.;
+ *+_+_+_+_===+++----___=***---//////// /** /* /* / / /
+ * +and-not||or ()()()()(((()))){{{}}}{{()[][][({})}}
+ * ifthenelse
+ * iiiiiif thennn tthennnn eeelllsseee else for class classses classing
+ * getts getget get float int if int put return program
+ *
+ * ++ -- +-+-+/+/+-==-=
+ * == <> < > <= >= ; , . + - * / =  ( ) () { } {} [ ] [] /* //
+ *
+ * and not or if then else for class int float get put return program
+ *
+ */
 
 
