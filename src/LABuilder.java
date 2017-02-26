@@ -170,7 +170,7 @@ public class LABuilder {
             System.err.println("Cannot make transform at line "+lineNum+": "+line+"(invalid transform)");
         if(res!=null && res.length()>1) {
             t = new CharTransform(min, max, res.charAt(0), res.charAt(1));
-            analyzer.transforms.add(t);
+            analyzer.dfa.transforms.add(t);
             if(debug)
                 System.out.println("Transform added: from "+min+" - "+max+" to "+res);
         }
@@ -312,6 +312,7 @@ public class LABuilder {
 
 /** This is for the test case, as the default input is this file
  *  test23782_238293.+-(hello there_(_232_)-if<(why)then)("THIS_ISrecognised(here):Nor_WAS99_that>
+ *  1234.aa111 12.12a 123.123 hello123_abc_123.acb 123_abc_123.1abc
  * =============== == == = === == =
  *><><><><</></></> <><></></>
  * <=>>=<><<=><<<<<<>>>>>>>></>

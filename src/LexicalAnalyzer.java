@@ -9,7 +9,6 @@ import java.util.Scanner;
  */
 public class LexicalAnalyzer {
     ArrayList<Token> tokens;
-    ArrayList<CharTransform> transforms;
     DFA dfa;
     LABuilder builder;
     boolean debug;
@@ -19,7 +18,6 @@ public class LexicalAnalyzer {
     public  LexicalAnalyzer(String instructions, String code,boolean debug){
         float time = System.currentTimeMillis();
         tokens = new ArrayList<Token>();
-        transforms = new ArrayList<>();
         dfa = new DFA();
         dfa.setDebug(debug);
         this.debug = debug;
@@ -27,9 +25,7 @@ public class LexicalAnalyzer {
         builder.makeFromInstructions(instructions);
         analyzeCode(code,debug);
         System.out.println("Done\nTime Take: "+(System.currentTimeMillis()-time)+"milliseconds");
-
         output();
-
     }
     private void analyzeCode(String code,boolean debug){
         try
@@ -44,6 +40,7 @@ public class LexicalAnalyzer {
                     evaluateLine(line, lineNum++, debug);
             }
             reader.close();
+            tokens.add(new Token(Token.TOKEN.END,"",lineNum+1,0));
         }
         catch (Exception e)
         {
@@ -62,6 +59,7 @@ public class LexicalAnalyzer {
         in.close();
     }
     public void passLexeme(String lexeme,int lineNum,int colNum){
+
         boolean tokenMade = false;
         dfa.reset();
         if(debug)
@@ -70,20 +68,7 @@ public class LexicalAnalyzer {
         char input;
         for(int i = 0; i<lexeme.length();i++){
             input = lexeme.charAt(i);
-            if(!dfa.testInputAtCurrent(input)&&hasTransform(input)){
-                char[] inputs = getTransform(input);
-                if(dfa.testInputAtCurrent(inputs[0],inputs[1])) {
-                    dfa.input(inputs[0], inputs[1]);
-                    if (debug)
-                        System.out.println("Using transform: " + input + " to " + inputs[0] + "" + inputs[1]);
-                }
-                else
-                    dfa.input(input);
-
-            }
-            else {
-                dfa.input(input);
-            }
+            dfa.input(input);
 
             if(dfa.getToken() == Token.TOKEN.ERROR ||
                     (dfa.getToken() == Token.TOKEN.INTERMEDIATE && i == lexeme.length()-1)) {
@@ -96,9 +81,13 @@ public class LexicalAnalyzer {
                         passLexeme(lexeme.substring(i),lineNum,colNum+i+1);
                         break;
                     }
+            }
+            else if(dfa.getToken() == Token.TOKEN.INTERMEDIATE && dfa.peek(lexeme.charAt(i+1)) == Token.TOKEN.ERROR){
+                tokenMade = true;
+                makeToken(dfa.getPreviousToken(), lexeme.substring(0, i),lineNum,colNum+i-1);
+                passLexeme(lexeme.substring(i),lineNum,colNum+i);
 
             }
-
 
         }
         if(!tokenMade) {
@@ -106,27 +95,20 @@ public class LexicalAnalyzer {
 
         }
     }
+    public Token.TOKEN checkLexemeType(String lexeme){
+        dfa.reset();
+        char input;
+        for(int i = 0; i<lexeme.length();i++) {
+            input = lexeme.charAt(i);
+            dfa.input(input);
+        }
+        return dfa.getToken();
+    }
     private void makeToken(Token.TOKEN t, String lex,int line,int colNum){
         if(lex.length()>0)
             tokens.add(new Token(t,lex,line,colNum));
         if(debug)
             System.out.println("Token made: "+lex+" - "+t);
-    }
-    public boolean hasTransform(char c){
-
-        for(CharTransform t : transforms){
-            if(t.hasTransfomr(c))
-                return true;
-        }
-        return false;
-    }
-    public char[] getTransform(char c){
-        char[] temp = {c,c};
-        for(CharTransform t : transforms){
-            if(t.hasTransfomr(c))
-                return t.transform(c);
-        }
-        return temp;
     }
     public void printTokens(){
         for(Token t : tokens){

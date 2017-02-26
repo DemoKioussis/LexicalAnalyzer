@@ -11,13 +11,13 @@ public class CharTransform {
         result[1] = res;
     }
     public char[] transform(char c){
-        if(hasTransfomr(c))
+        if(hasTransform(c))
             return result;
         else
             return null;
 
     }
-    public boolean hasTransfomr(char c){
+    public boolean hasTransform(char c){
         return(c>= low && c<=high);
     }
 }

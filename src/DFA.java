@@ -12,6 +12,8 @@ public class DFA {
     private ArrayList<State> states = new ArrayList<>();
     // increment each time we add new state
     int lastID = 0;
+    // list of transforms
+    ArrayList<CharTransform> transforms;
 
     //error state is the state we go to when we make invalid transition, default id is 0
     private State errorState;//id 0
@@ -166,6 +168,7 @@ public class DFA {
 
 
     public DFA(){
+        transforms = new ArrayList<CharTransform>();
         errorState = new State(false); //id 0
         startState = new State(false); //id 1
         currentState = startState;
@@ -187,32 +190,60 @@ public class DFA {
     }
     public void input(char c){
         previousState = currentState;
-        currentState = currentState.makeTransition(c);
+        if(currentState.hasTransition(c)) {
+            currentState = currentState.makeTransition(c);
+        }
+        else if(hasValidTransform(c))
+        {
+            char[] trans = transform(c);
+            currentState = currentState.makeTransition(trans[0],trans[1]);
+        }
+        else
+            currentState = currentState.makeTransition(c);
+
         if(debug) {
-            path = path+c;
             System.out.print("Moving to state " + currentState.stateID+": "+getToken());
             if (currentState.isFinal())
                 System.out.print(" - Final State");
             if (currentState.stateID == errorState.stateID)
                 System.out.print(" - Error State");
-            System.out.println("Path: "+path+"\n");
         }
 
     }
+
     public void input(char c1,char c2){
-        previousState = currentState;
-        currentState = currentState.makeTransition(c1,c2);
+
+        if(peek(c1,c2)!=errorState.getToken()) {
+            previousState = currentState;
+            currentState = currentState.makeTransition(c1, c2);
+        }
         if(debug) {
-            path = path+c1 +""+c2;
             System.out.print("Moving to state " + currentState.stateID+": "+getToken());
             if (currentState.isFinal())
                 System.out.print(" - Final State");
             if (currentState.stateID == errorState.stateID)
                 System.out.print(" - Error State");
-            System.out.println("\n");
         }
 
     }
+
+    private boolean hasValidTransform(char c){
+        for(CharTransform t : transforms){
+            if(t.hasTransform(c) && peek(t.result[0],t.result[1])!= errorState.getToken()){
+                return true;
+            }
+        }
+        return false;
+    }
+    private char[] transform(char c){
+        for(CharTransform t : transforms){
+            if(t.hasTransform(c) && peek(t.result[0],t.result[1])!= errorState.getToken()){
+                return t.result;
+            }
+        }
+        return null;
+    }
+
     public int addState(boolean fin){
         State s = new State(fin);
         states.add(s);
@@ -267,12 +298,25 @@ public class DFA {
     }
 
     public Token.TOKEN getToken(){
-            return currentState.getToken();
+        return currentState.getToken();
     }
     public Token.TOKEN getPreviousToken(){
         return previousState.getToken();
 
     }
+
+    public Token.TOKEN peek(char c){
+        if(!currentState.hasTransition(c) && hasValidTransform(c))
+            return peek(transform(c)[0],transform(c)[1]);
+        else
+           return currentState.makeTransition(c).getToken();
+    }
+    public Token.TOKEN peek(char c1,char c2){
+
+        return currentState.makeTransition(c1,c2).getToken();
+    }
+
+
     public void reset(){
         currentState = startState;
         previousState = startState;
@@ -283,6 +327,7 @@ public class DFA {
         path = "";
 
     }
+
     public int size(){
         return states.size();
     }

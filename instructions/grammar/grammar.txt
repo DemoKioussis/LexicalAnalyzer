@@ -1,0 +1,94 @@
+##NON_TERMINAL
+<test> ::= <prog>
+<prog> ::= <classDeclStar> <progBody> 	
+<classDeclStar> 	::= <classDecl> <classDeclStar>  |  E
+<classDecl> 		::= <class> <id> <openCurly> <varDeclStar> <funcDefStar> <closeCurly> <semiCol>		
+<varDeclStar> 		::= <varDecl> <varDeclStar>  |  E
+<funcDefStar> 		::= <funcDef> <funcDefStar>  |  E
+<progBody> 		::= <program> <funcBody> <semiCol> <funcDefStar>				
+<funcHead> 		::= <type> <id> <openParen> <fParams> <closeParen>
+<funcDef> 		::= <funcHead> <funcBody> <semiCol>
+<funcBody> 		::= <openCurly> <varDeclStar> <statementStar> <closeCurly>
+<statementStar> 	::= <statement> <statementStar>  |  E
+<varDecl> 		::= <type> <id> <arraySizeStar> <semiCol>	
+<arraySizeStar> 	::= <arraySize> <arraySizeStar>  |  E
+<statement> 		::= <assignStat> <semiCol>  |  <if> <openParen> <expr> <closeParen> <then> <statBlock> <else> <statBlock> <semiCol>  |  <for> <openParen> <type> <id> <assignOp> <expr> <semiCol> <relExpr> <semiCol> <assignStat> <closeParen> <statBlock> <semiCol>  |  <get> <openParen> <variable> <closeParen> <semiCol>  |  <put> <openParen> <expr> <closeParen> <semiCol>  |  <return> <openParen> <expr> <closeParen> <semiCol>
+<assignStat> 		::= <variable> <assignOp> <expr>
+<statBlock> 		::= <openCurly> <statementStar> <closeCurly>  |  <statement>  |  E	
+<expr> 			::= <arithExpr>  |  <relExpr>
+<relExpr> 		::= <arithExpr> <relOp> <arithExpr>
+<arithExpr> 		::= <term> <arithExprPrime>
+<arithExprPrime> 	::= <addOp> <term> <arithExprPrime>  |  E
+<sign> 			::= <plus>  |  <minus>
+<term> 			::= <factor> <termPrime>
+<termPrime> 		::= <multOp> <factor> <termPrime>  |  E
+<factor> 		::= <variable>  |  <idnestStar> <id> <openParen> <aParams> <closeParen>  |  <num>  |  <openParen> <arithExpr> <closeParen>  |  <not> <factor>  |  <sign> <factor>
+<idnestStar> 		::= <idnest> <idnestStar>  |  E
+<variable> 		::= <idnestStar> <id> <indiceStar>
+<indiceStar> 		::= <indice> <indiceStar>  |  E
+<idnest> 		::= <id> <indiceStar> <dot>							
+<indice> 		::= <openSquare> <arithExpr> <closeSquare>
+<arraySize> 		::= <openSquare> <integer> <closeSquare>
+<type> 			::= <int>  |  <float>  |  <id>
+<fParams> 		::= <type> <id> <arraySizeStar> <fParamsTailStar>  |  E
+<fParamsTailStar> 	::= <fParamsTail> <fParamsTailStar>  |  E
+<aParams> 		::= <expr> <aParamsTailStar>  |  E
+<aParamsTailStar> 	::= <aParamsTail> <aParamsTailStar>  |  E
+<fParamsTail> 		::= <comma> <type> <id> <arraySizeStar>
+<aParamsTail> 		::= <comma> <expr>
+
+<assignOp> 		::= <assign>
+<relOp> 		::= <equal>  |  <notEqual>  |  <lessThan>  |  <greaterThan>  |  <lessThanOrEqual>  |  <greaterThanOrEqual>
+<addOp> 		::= <plus>  |  <minus>  | <or>
+<multOp> 		::= <multiply>  | <divide> |  <and>
+<num>			::= <integer>  |  <float>
+
+
+
+##TERMINAL
+
+<openParen> ::= ORG_OPEN_PAREN
+<closeParen> ::= ORG_CLOSE_PAREN
+<openCurly>  ::= ORG_OPEN_CURLY
+<closeCurly> ::= ORG_CLOSE_CURLY
+<openSquare> ::= ORG_OPEN_BRACKET
+<closeSquare> ::= ORG_CLOSE_BRACKET
+<commentLine>  ::= ORG_COMMENT_LINE
+<openComment>  ::= ORG_COMMENT_OPEN
+<closeComment>  ::= ORG_COMMENT_CLOSE
+
+<if> ::= W_IF
+<then> ::= W_THEN 
+<else> ::= W_ELSE 
+<for> ::= W_FOR 
+<class> ::= W_CLASS 
+<int> ::= W_INT 
+<float> ::= W_FLOAT 
+<get> ::= W_GET 
+<put> ::= W_PUT 
+<return> ::= W_RETURN 
+<program> ::= W_PROGRAM 
+
+<equal> ::= OP_EQUAL
+<notEqual> ::= OP_NOT_EQUAL
+<lessThan> ::= OP_L_THAN
+<greaterThan> ::= OP_G_THAN
+<lessThanOrEqual>  ::= OP_L_THAN_OR_EQUAL
+<greaterThanOrEqual> ::= OP_G_THAN_OR_EQUAL
+<plus> ::= OP_PLUS
+<minus>  ::= OP_MINUS
+<multiply> ::= OP_MULTIPLY
+<divide> ::= OP_DIVIDE
+<assign> ::= OP_ASSIGN
+<and> ::= OP_AND 
+<not> ::= OP_NOT 
+<or> ::= OP_OR 
+
+<semiCol> ::= PUNCT_SEMICOL
+<comma> ::= PUNCT_COMMA
+<dot> ::= PUNCT_DOT
+
+<integer> ::= EL_INTEGER
+<float> ::= EL_FLOAT
+
+<id> ::= EL_ID

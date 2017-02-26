@@ -6,7 +6,7 @@ Assignment 1
 I followed the original specifications for the lexical analyzer outlined in the handout
 
 The DFA that my Lexical analyzer uses is generated from a file located in the /instructions/ folder, 
-The file explains the syntax used to generate the DFA
+The file explains the syntax used to generate the DFA. Some examples are show in pictures
 
 The lexical analyzer has 2 parts: 
 	-The DFA that is generated based on the syntax of the language
@@ -49,6 +49,8 @@ The lexical analyzer has 2 parts:
 				however the lexem 5. is not recognised, so this state is intermediate
 				
 				
+		- if we have pattern 123.a1, we perform a peek on the intermediate state. if next token is ERROR, then we
+			store 123 as int, '.' as DOT, pass 'a1' as a new lexeme to test
 
 		- the dfa is reset after each token is generated and the process is repeated until the file is finished
 

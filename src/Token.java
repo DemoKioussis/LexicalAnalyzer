@@ -7,7 +7,7 @@ public class Token {
         OP_EQUAL,OP_NOT_EQUAL,OP_L_THAN,OP_G_THAN,OP_L_THAN_OR_EQUAL,OP_G_THAN_OR_EQUAL,
         OP_PLUS,OP_MINUS,OP_MULTIPLY,OP_DIVIDE,OP_ASSIGN,OP_AND,OP_NOT,OP_OR,PUNCT_SEMICOL,PUNCT_COMMA,PUNCT_DOT,
         ORG_OPEN_PAREN,ORG_CLOSE_PAREN,ORG_OPEN_CURLY,ORG_CLOSE_CURLY,ORG_OPEN_BRACKET,ORG_CLOSE_BRACKET,
-        ORG_COMMENT_LINE,ORG_COMMENT_OPEN,ORG_COMMENT_CLOSE,ERROR,NOTHING,START,INTERMEDIATE};
+        ORG_COMMENT_LINE,ORG_COMMENT_OPEN,ORG_COMMENT_CLOSE,ERROR,NOTHING,START,END,INTERMEDIATE};
 
     private String lexeme;
     private TOKEN token;
@@ -19,7 +19,15 @@ public class Token {
         position[0] =row;
         position[1] = col;
     }
-
+    public boolean match(Token t){
+        return t.getToken() == token;
+    }
+    public boolean match(Token.TOKEN t){
+        return t == token;
+    }
+    public boolean match(String s){
+        return token.name().equals(s);
+    }
     public TOKEN getToken(){
         return token;
     }
